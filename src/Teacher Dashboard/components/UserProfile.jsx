@@ -26,7 +26,8 @@ const UserProfile = () => {
 
     const isRequestAdded = async () => {
       try {
-        const mainData = await getRequestByEmail(user.email);
+        const teacher = JSON.parse(localStorage.getItem('teacher'));
+        const mainData = await getRequestByEmail(teacher.email);
         if (mainData) {
           setRequestAdded(true);
         }

@@ -42,7 +42,8 @@ const RequestTransfer = () => {
             fetchVacancy();
             const isRequestAdded = async () => {
                 try {
-                    const mainData = await getRequestByEmail(teacher.email);
+                    const storeTeacher = JSON.parse(localStorage.getItem('teacher'));
+                    const mainData = await getRequestByEmail(storeTeacher.email);
                     if (mainData) {
                         setRequestAdded(true);
                     }
