@@ -1,13 +1,44 @@
 import React,{useEffect, useState} from 'react';
 import Avatar from 'react-avatar';
+import { Link } from 'react-router-dom';
+import { getRequestByEmail, getTeacherById } from '../../components/api';
 
 
 const UserProfile = () => {
   const [user, setUser] = useState({});
+  const [requestAdded, setRequestAdded] = useState(false);
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const teacherId = JSON.parse(localStorage.getItem('teacher'))._id;
+        const teacherData = await getTeacherById(teacherId);
+        setUser(teacherData);
+        localStorage.removeItem('teacher');
+        localStorage.setItem('teacher', JSON.stringify(teacherData));
+      } catch (error) {
+        console.error('Error fetching teacher profiles:', error);
+      }
+    };
+
+    fetchProfile();
     const storageUser = JSON.parse(localStorage.getItem('teacher'));
     setUser(storageUser);
-  }, []);
+
+    const isRequestAdded = async () => {
+      try {
+        const mainData = await getRequestByEmail(user.email);
+        if (mainData) {
+          setRequestAdded(true);
+        }
+      } catch (error) {
+        console.error('Error fetching request:', error);
+      }
+    };
+
+      isRequestAdded();
+      
+    }, []);
+  
   return (
     <>
       {user && (
@@ -16,11 +47,18 @@ const UserProfile = () => {
             <Avatar name="Akhter" size="50" round={true} />
             <div>
               <h2 className="text-xl font-bold ml-4">{user.name}</h2>
-              <p className="text-gray-600 dark:text-gray-300 ml-4">PST (Arts)</p>
+              <p className="text-gray-600 dark:text-gray-300 ml-4">{user.initialAppointment}</p>
             </div>
           </div>
 
-          <h3 className="text-lg bg-slate-400 font-bold mb-4 text-black-600 dark:text-indigo-400 inline-block rounded-md p-1">
+          {!requestAdded && (
+            <Link to="/teacher-signup" className="bg-blue-500 text-white px-4 py-2 rounded">
+              Edit Profile
+            </Link>
+          )}
+          <hr style={{visibility: 'hidden'}} />
+
+          <h3 className="text-lg bg-slate-400 font-bold mb-4 text-black-600 dark:text-indigo-400 inline-block rounded-md mt-5 p-1">
             Personal Information
           </h3>
 

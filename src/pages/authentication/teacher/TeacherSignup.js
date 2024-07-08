@@ -1,8 +1,7 @@
 import axios from 'axios';
-import React, { useState,useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom';
-import { isAuthenticated, isDEO } from '../../../utilities/auth';
-
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { isAuthenticated, isDEO, isTeacher } from '../../../utilities/auth';
 
 const TeacherSignup = () => {
     const navigate = useNavigate();
@@ -10,40 +9,112 @@ const TeacherSignup = () => {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [serviceType, setServiceType] = useState("serviceType");
+    const [serviceType, setServiceType] = useState("");
     const [cnic, setCnic] = useState("");
     const [dob, setDob] = useState("");
     const [contactNumber, setContactNumber] = useState("");
-    const [initialAppointment, setInitialAppointment] = useState("Appointment");
+    const [initialAppointment, setInitialAppointment] = useState("");
     const [grade, setGrade] = useState("");
-    const [maritalStatus, setMaritalStatus] = useState("single");
+    const [maritalStatus, setMaritalStatus] = useState("");
     const [homeAddress, setHomeAddress] = useState("");
     const [currentSchool, setCurrentSchool] = useState("");
     const [dateOfJoining, setDateOfJoining] = useState("");
-    const [postedAs, setPostedAs] = useState("postedAs");
+    const [postedAs, setPostedAs] = useState("");
     const [experience, setExperience] = useState("");
+    const [teacherId, setTeacherId] = useState("");
+    const [ethAddress, setEthAddress] = useState("");
+    const [asTeacher, setAsTeacher] = useState(false);
+    const [asDEO, setAsDEO] = useState(false);
 
     useEffect(() => {
-        if (!isAuthenticated() || !isDEO()) {
+        if (!isAuthenticated()) {
             navigate("/teacher-signin");
         }
-    }, []);
+        if (isDEO() || !isTeacher()) {
+            setAsDEO(true);
+        }
+        if (isTeacher() || !isDEO()) {
+            setAsTeacher(true);
+            const teacher = localStorage.getItem('teacher');
+            const teacherData = {
+                name: JSON.parse(teacher).name || "",
+                email: JSON.parse(teacher).email || "",
+                password: JSON.parse(teacher).password || "",
+                serviceType: JSON.parse(teacher).serviceType || "",
+                cnic: JSON.parse(teacher).cnic || "",
+                dob: JSON.parse(teacher).dob || "",
+                contactNumber: JSON.parse(teacher).contactNumber || "",
+                initialAppointment: JSON.parse(teacher).initialAppointment || "",
+                grade: JSON.parse(teacher).grade || "",
+                maritalStatus: JSON.parse(teacher).maritalStatus || "",
+                homeAddress: JSON.parse(teacher).homeAddress || "",
+                currentSchool: JSON.parse(teacher).currentSchool || "",
+                dateOfJoining: JSON.parse(teacher).dateOfJoining || "",
+                postedAs: JSON.parse(teacher).postedAs || "",
+                experience: JSON.parse(teacher).experience || "",
+                teacherId: JSON.parse(teacher)._id || "",
+                ethAddress: JSON.parse(teacher).ethAddress || ""
+            };
+
+            setName(teacherData.name);
+            setEmail(teacherData.email);
+            setPassword(teacherData.password);
+            setServiceType(teacherData.serviceType);
+            setCnic(teacherData.cnic);
+            setDob(teacherData.dob);
+            setContactNumber(teacherData.contactNumber);
+            setInitialAppointment(teacherData.initialAppointment);
+            setGrade(teacherData.grade);
+            setMaritalStatus(teacherData.maritalStatus);
+            setHomeAddress(teacherData.homeAddress);
+            setCurrentSchool(teacherData.currentSchool);
+            setDateOfJoining(teacherData.dateOfJoining);
+            setPostedAs(teacherData.postedAs);
+            setExperience(teacherData.experience);
+            setTeacherId(teacherData.teacherId);
+            setEthAddress(teacherData.ethAddress);
+        }
+    }, [navigate, asTeacher, asDEO]);
 
     const goBack = () => {
-        navigate("/");
+        navigate("/teacher-dashboard");
     };
 
     const handleSubmit = async () => {
         try {
-            const { data } = await axios.post("http://localhost:5001/teachers/register", {
-                name, currentSchool, experience, homeAddress, cnic, email, password, dateOfJoining, postedAs, serviceType, dob, contactNumber, initialAppointment, grade, maritalStatus, homeAddress
+            const response = await axios.post("http://localhost:5001/teachers/register", {
+                name, currentSchool, experience, homeAddress, cnic, email, password, dateOfJoining, postedAs, serviceType, dob, contactNumber, initialAppointment, grade, maritalStatus
             });
-            console.log(data);
-            navigate("/deodashboard")
+
+            if (response) {
+                alert("Teacher Registered Successfully");
+                navigate("/deodashboard");
+            }
         } catch (error) {
+            alert("Error: " + error.response.data.error);
             console.log(error);
         }
     }
+
+    const handleUpdate = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            axios.defaults.headers.common = { 'Authorization': `${token}` }
+            const response = await axios.post(`http://localhost:5001/teachers/addRequest `, {
+                name, currentSchool, experience, homeAddress, cnic, email, password, dateOfJoining, postedAs, serviceType, dob, contactNumber, initialAppointment, grade, maritalStatus, ethAddress
+            });
+
+            if (response) {
+                alert("Teacher Updated Successfully, and Send for Approval");
+                navigate("/teacher-dashboard");
+            }
+        } catch (error) {
+            alert("Error: " + error.response.data.error);
+            console.log(error);
+        }
+    }
+
+
     return (
         <div className="">
             <div className="grid grid-cols-1 md:grid-cols-2 h-[100vh]">
@@ -57,7 +128,7 @@ const TeacherSignup = () => {
                 <div className="things md:px-32 px-4 md:mt-16 mt-4">
                     <div className="text-start">
                         <i
-                            class="fa fa-arrow-left text-3xl text-[#165371] "
+                            className="fa fa-arrow-left text-3xl text-[#165371] "
                             onClick={goBack}
                             style={{ cursor: "pointer" }}
                         ></i>
@@ -70,10 +141,10 @@ const TeacherSignup = () => {
                         </h1>
                     </div>
                     <form>
-                        <div className="w-full  mb-6 md:mb-0 mt-8">
+                        <div className="w-full mb-6 md:mb-0 mt-8">
                             <label
-                                className="block  tracking-wide text-gray-700 text-base font-semibold mb-2 "
-                                for="grid-first-name"
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
                             >
                                 Name <span className="text-[red]">*</span>
                             </label>
@@ -89,10 +160,10 @@ const TeacherSignup = () => {
                             />
                             <span className="text-xs text-[red]"></span>
                         </div>
-                        <div className="w-full  mb-6 md:mb-0 mt-8">
+                        <div className="w-full mb-6 md:mb-0 mt-8">
                             <label
-                                className="block  tracking-wide text-gray-700 text-base font-semibold mb-2 "
-                                for="grid-first-name"
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
                             >
                                 School Name <span className="text-[red]">*</span>
                             </label>
@@ -108,12 +179,12 @@ const TeacherSignup = () => {
                             />
                             <span className="text-xs text-[red]"></span>
                         </div>
-                        <div className="w-full  mb-6 md:mb-0 mt-8">
+                        <div className="w-full mb-6 md:mb-0 mt-8">
                             <label
-                                className="block  tracking-wide text-gray-700 text-base font-semibold mb-2 "
-                                for="grid-first-name"
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
                             >
-                                Date Of Joining  <span className="text-[red]">*</span>
+                                Date Of Joining <span className="text-[red]">*</span>
                             </label>
 
                             <input
@@ -127,193 +198,267 @@ const TeacherSignup = () => {
                             />
                             <span className="text-xs text-[red]"></span>
                         </div>
-                        <div className="w-full  mb-6 md:mb-0 mt-8">
+                        <div className="w-full mb-6 md:mb-0 mt-8">
                             <label
-                                className="block  tracking-wide text-gray-700 text-base font-semibold mb-2 "
-                                for="grid-first-name"
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
                             >
-                                Experience (In Years) <span className="text-[red]">*</span>
+                                Initial Appointment <span className="text-[red]">*</span>
                             </label>
 
                             <input
                                 className="Name w-full py-2 px-2 border focus:outline-none"
-                                type="text"
                                 required
-                                name="experience"
-                                placeholder="3 Years"
-                                value={experience}
-                                onChange={(e) => setExperience(e.target.value)}
+                                name="initialAppointment"
+                                placeholder="Arts Teacher"
+                                value={initialAppointment}
+                                onChange={(e) => setInitialAppointment(e.target.value)}
                             />
                             <span className="text-xs text-[red]"></span>
                         </div>
-
-                        <div className="w-full  mb-6 md:mb-0 mt-8">
+                        <div className="w-full mb-6 md:mb-0 mt-8">
                             <label
-                                className="block  tracking-wide text-gray-700 text-base font-semibold mb-2 "
-                                for="grid-first-name"
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
                             >
-                                City <span className="text-[red]">*</span>
+                                Posted As <span className="text-[red]">*</span>
                             </label>
 
                             <input
                                 className="Name w-full py-2 px-2 border focus:outline-none"
-                                type="text"
                                 required
-                                name="homeAddress"
-                                placeholder="Abbottabad"
-                                value={homeAddress}
-                                onChange={(e) => setHomeAddress(e.target.value)}
+                                name="postedAs"
+                                placeholder="Teacher"
+                                value={postedAs}
+                                onChange={(e) => setPostedAs(e.target.value)}
                             />
                             <span className="text-xs text-[red]"></span>
                         </div>
-
-                        <div className="w-full  mb-6 md:mb-0 mt-8">
+                        <div className="w-full mb-6 md:mb-0 mt-8">
                             <label
-                                className="block  tracking-wide text-gray-700 text-base font-semibold mb-2 "
-                                for="grid-first-name"
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
                             >
-                                Cnic <span className="text-[red]">*</span>
+                                Service Type <span className="text-[red]">*</span>
                             </label>
 
-                            <input
-                                className="Name w-full py-2 px-2 border focus:outline-none"
-                                type="text"
+                            <select
+                                className="w-full py-2 px-2 border focus:outline-none"
                                 required
-                                name="cnic"
-                                placeholder="13503-7887654-3"
-                                value={cnic}
-                                onChange={(e) => setCnic(e.target.value)}
-                            />
-                            <span className="text-xs text-[red]"></span>
-                        </div>
-
-                        <div className="w-full  mb-6 md:mb-0 mt-8">
-                            <label
-                                className="block  tracking-wide text-gray-700 text-base font-semibold mb-2 "
-                                for="grid-first-name"
+                                name="serviceType"
+                                value={serviceType}
+                                onChange={(e) => setServiceType(e.target.value)}
                             >
-                                DOB <span className="text-[red]">*</span>
-                            </label>
-
-                            <input
-                                className="Name w-full py-2 px-2 border focus:outline-none"
-                                type="text"
-                                required
-                                name="dob"
-                                placeholder="13/12/1996"
-                                value={dob}
-                                onChange={(e) => setDob(e.target.value)}
-                            />
+                                <option value="" disabled>
+                                    Choose an option
+                                </option>
+                                <option value="Regular">Regular</option>
+                                <option value="Temporary">Temporary</option>
+                            </select>
                             <span className="text-xs text-[red]"></span>
                         </div>
-
-                        <div className="w-full  mb-6 md:mb-0 mt-8">
+                        <div className="w-full mb-6 md:mb-0 mt-8">
                             <label
-                                className="block  tracking-wide text-gray-700 text-base font-semibold mb-2 "
-                                for="grid-first-name"
-                            >
-                                Contact Number <span className="text-[red]">*</span>
-                            </label>
-
-                            <input
-                                className="Name w-full py-2 px-2 border focus:outline-none"
-                                type="text"
-                                required
-                                name="contactNumber"
-                                placeholder="0333-1234567"
-                                value={contactNumber}
-                                onChange={(e) => setContactNumber(e.target.value)}
-                            />
-                            <span className="text-xs text-[red]"></span>
-                        </div>
-
-                        <div className="w-full  mb-6 md:mb-0 mt-8">
-                            <label
-                                className="block  tracking-wide text-gray-700 text-base font-semibold mb-2 "
-                                for="grid-first-name"
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
                             >
                                 Grade <span className="text-[red]">*</span>
                             </label>
 
                             <input
                                 className="Name w-full py-2 px-2 border focus:outline-none"
-                                type="text"
                                 required
                                 name="grade"
-                                placeholder="Grade 17"
+                                placeholder="16"
                                 value={grade}
                                 onChange={(e) => setGrade(e.target.value)}
                             />
                             <span className="text-xs text-[red]"></span>
                         </div>
-
-                        <div className="w-full  mb-6 md:mb-0 mt-8">
+                        <div className="w-full mb-6 md:mb-0 mt-8">
                             <label
-                                className="block  tracking-wide text-gray-700 text-base font-semibold mb-2 "
-                                for="grid-first-name"
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
+                            >
+                                Experience <span className="text-[red]">*</span>
+                            </label>
+
+                            <input
+                                className="Name w-full py-2 px-2 border focus:outline-none"
+                                required
+                                name="experience"
+                                placeholder="12 Years"
+                                value={experience}
+                                onChange={(e) => setExperience(e.target.value)}
+                            />
+                            <span className="text-xs text-[red]"></span>
+                        </div>
+                        <div className="w-full mb-6 md:mb-0 mt-8">
+                            <label
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
+                            >
+                                CNIC <span className="text-[red]">*</span>
+                            </label>
+
+                            <input
+                                className={`Name w-full py-2 px-2 border focus:outline-none ${asTeacher ? "bg-gray-200" : ""}`}
+                                required
+                                name="cnic"
+                                readOnly={asTeacher}
+                                placeholder="Cnic"
+                                value={cnic}
+                                onChange={(e) => setCnic(e.target.value)}
+                            />
+                            <span className="text-xs text-[red]"></span>
+                        </div>
+                        <div className="w-full mb-6 md:mb-0 mt-8">
+                            <label
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
+                            >
+                                Date Of Birth <span className="text-[red]">*</span>
+                            </label>
+
+                            <input
+                                className="Name w-full py-2 px-2 border focus:outline-none"
+                                required
+                                name="dob"
+                                placeholder="24/10/1980"
+                                value={dob}
+                                onChange={(e) => setDob(e.target.value)}
+                            />
+                            <span className="text-xs text-[red]"></span>
+                        </div>
+                        <div className="w-full mb-6 md:mb-0 mt-8">
+                            <label
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
+                            >
+                                Contact Number <span className="text-[red]">*</span>
+                            </label>
+
+                            <input
+                                className="Name w-full py-2 px-2 border focus:outline-none"
+                                required
+                                name="contactNumber"
+                                placeholder="+92 333 8978654"
+                                value={contactNumber}
+                                onChange={(e) => setContactNumber(e.target.value)}
+                            />
+                            <span className="text-xs text-[red]"></span>
+                        </div>
+                        <div className="w-full mb-6 md:mb-0 mt-8">
+                            <label
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
+                            >
+                                Marital Status <span className="text-[red]">*</span>
+                            </label>
+
+                            <input
+                                className="Name w-full py-2 px-2 border focus:outline-none"
+                                required
+                                name="maritalStatus"
+                                placeholder="Single"
+                                value={maritalStatus}
+                                onChange={(e) => setMaritalStatus(e.target.value)}
+                            />
+                            <span className="text-xs text-[red]"></span>
+                        </div>
+                        <div className="w-full mb-6 md:mb-0 mt-8">
+                            <label
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
+                            >
+                                Home Address <span className="text-[red]">*</span>
+                            </label>
+
+                            <input
+                                className="Name w-full py-2 px-2 border focus:outline-none"
+                                required
+                                name="homeAddress"
+                                placeholder="Home Address"
+                                value={homeAddress}
+                                onChange={(e) => setHomeAddress(e.target.value)}
+                            />
+                            <span className="text-xs text-[red]"></span>
+                        </div>
+                        <div className="w-full mb-6 md:mb-0 mt-8">
+                            <label
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
                             >
                                 Email <span className="text-[red]">*</span>
                             </label>
 
                             <input
-                                className="Name w-full py-2 px-2 border focus:outline-none"
+                                className={`Name w-full py-2 px-2 border focus:outline-none ${asTeacher ? "bg-gray-200" : ""}`}
                                 type="email"
                                 required
+                                readOnly={asTeacher}
                                 name="email"
-                                placeholder="youremail@gmail.com"
+                                placeholder="johndoe@gmail.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                             <span className="text-xs text-[red]"></span>
                         </div>
-
-                        <div className="w-full  mb-6 md:mb-0 mt-8">
+                        {!asTeacher && (
+                                                    <div className="w-full mb-6 md:mb-0 mt-8">
                             <label
-                                className="block  tracking-wide text-gray-700 text-base font-semibold mb-2 "
-                                for="grid-first-name"
+                                className="block tracking-wide text-gray-700 text-base font-semibold mb-2"
+                                htmlFor="grid-first-name"
                             >
                                 Password <span className="text-[red]">*</span>
                             </label>
-                            <div className="io absolute right-[12%] mt-[9px] text-[#9fa5b0] hover:text-[#5538c8] cursor-pointer">
+
+                            <div className="flex">
+                                <input
+                                    className="Name w-full py-2 px-2 border focus:outline-none"
+                                    type={showPassword ? "text" : "password"}
+                                    required
+                                    name="password"
+                                    placeholder="********"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
                                 <i
-                                    class="fa fa-eye"
+                                    className={`fa ${showPassword ? "fa-eye" : "fa-eye-slash"}  px-2 border`}
                                     onClick={() => setShowPassword(!showPassword)}
-                                    aria-hidden="true"
+                                    style={{ cursor: "pointer" }}
                                 ></i>
                             </div>
-                            <input
-                                className="Name w-full py-2 px-2 border focus:outline-none"
-                                type={showPassword ? "text" : "password"}
-                                required
-                                name="password"
-                                placeholder="********"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
+                            <span className="text-xs text-[red]"></span>
+                        </div>
+                        )}
+                        <div className="md:flex justify-between mt-8">
+                            <div className="md:w-[49%]">
+                                <button
+                                    className="md:w-full text-white text-base font-bold bg-[#165371] py-4 px-4"
+                                    type="button"
+                                    onClick={asTeacher ? handleUpdate : handleSubmit}
+                                >
+                                    {asTeacher ? "Update" : "Register"}
+                                </button>
+                            </div>
+                            {asTeacher && (
+                                <div className="md:w-[49%] mt-4 md:mt-0">
+                                    <button
+                                        className="md:w-full text-[#165371] text-base font-bold border-2 border-[#165371] py-4 px-4"
+                                        type="button"
+                                        onClick={goBack}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </form>
-
-                    <div className="flex justify-center mt-8 flex-col pb-4 md:pb-4 ">
-                        <button
-                            className="block w-full py-2 text-base text-white bg-[#165371]  hover:font-semibold px-8 mt-4"
-                            onClick = {handleSubmit}
-                        >
-                            Signup
-                        </button>
-                        <Link to="/teacher-signin">
-                            <p className="mt-8 text-center font-semibold">
-                                Already Have an Account ? 
-                                <span className="text-[#165371] font-semibold hover:font-bold cursor-pointer">
-                                     Signin
-                                </span>
-                            </p>
-                        </Link>
-
-                    </div>
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default TeacherSignup
+export default TeacherSignup;

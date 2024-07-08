@@ -47,7 +47,7 @@ const DeoSignin = () => {
                 <div className="things md:px-32 px-4 md:mt-16 mt-4">
                     <div className="text-start">
                         <i
-                            class="fa fa-arrow-left text-3xl text-[#165371] "
+                            className="fa fa-arrow-left text-3xl text-[#165371] "
                             onClick={goBack}
                             style={{ cursor: "pointer" }}
                         ></i>
@@ -91,7 +91,7 @@ const DeoSignin = () => {
                             </label>
                             <div className="io absolute right-[12%] mt-[9px] text-[#9fa5b0] hover:text-[#165371] cursor-pointer">
                                 <i
-                                    class="fa fa-eye"
+                                    className="fa fa-eye"
                                     onClick={() => setShowPassword(!showPassword)}
                                     aria-hidden="true"
                                 ></i>
@@ -115,11 +115,11 @@ const DeoSignin = () => {
                         >
                             Login
                         </button>
-                        <Link to="/deo-signup">
+                        <Link to="/teacher-signup">
                             <p className="mt-8 text-center font-semibold">
-                                Dont have an acoount ?
+                                Wanna add a new teacher?{" "}
                                 <span className="text-[#165371] font-semibold hover:font-bold cursor-pointer">
-                                    Signup
+                                    Teacher Signup
                                 </span>
                             </p>
                         </Link>

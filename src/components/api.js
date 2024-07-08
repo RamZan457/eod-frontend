@@ -20,6 +20,86 @@ export const registerTeacher = async (teacherData) => {
     }
 };
 
+//Get teacher by ID
+export const getTeacherById = async (teacherId) => {
+    try {
+        const response = await api.get(`/${teacherId}`);
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to get teacher');
+    }
+};
+
+//Function to get All Vacancies
+export const getAllVacancies = async () => {
+    try {
+        const response = await api.get('/getVacancies');
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to get vacancies');
+    }
+};
+
+//Function to add a new vacancy
+export const addVacancy = async (vacancyData) => {
+    try {
+        const response = await api.post('/addVacancy', vacancyData);
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to add vacancy');
+    }
+};
+
+//Function to delete a vacancy
+export const deleteVacancy = async (vacancyId) => {
+    try {
+        const response = await api.delete(`/deleteVacancy/${vacancyId}`);
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to delete vacancy');
+    }
+};
+
+//Function get request by Email
+export const getRequestByEmail = async (email) => {
+    try {
+        const response = await api.get(`/getRequestByEmail/${email}`);
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to get request');
+    }
+};
+
+//Function to get Profile Edit Requests
+export const getProfileEditRequests = async () => {
+    try {
+        const response = await api.get('/getRequests');
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to get profile edit requests');
+    }
+};
+
+//Function to approve a profile edit request
+export const approveProfileEditRequest = async (teacherId) => {
+    try {
+        const response = await api.post(`/approveRequest/${teacherId}`);
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to approve profile edit request');
+    }
+};
+
+//Function to reject a profile edit request
+export const rejectProfileEditRequest = async (teacherId) => {
+    try {
+        const response = await api.post(`/rejectRequest/${teacherId}`);
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to reject profile edit request');
+    }
+};
+
 // Function to login a teacher
 export const loginTeacher = async (credentials) => {
     try {
@@ -139,6 +219,7 @@ export const getAllSchools = async () => {
         throw new Error('Failed to get schools');
     }
 };
+
 export const getSchoolChangeRequests = async () => {
     try {
         const response = await api.get('/getSchoolChangeRequests');

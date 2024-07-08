@@ -4,7 +4,7 @@ import { useStateContext } from '../../contexts/ContextProvider';
 import { FiSettings } from "react-icons/fi";
 import { TooltipComponent } from "@syncfusion/ej2-react-popups";
 import { Navbar, Footer, Sidebar, ThemeSettings } from "../components";
-import { getSchoolChangeRequests, approveSchoolChange, rejectSchoolChange } from '../../components/api';
+import { getSchoolChangeRequests, approveSchoolChange, rejectSchoolChange, getProfileEditRequests, approveProfileEditRequest, rejectProfileEditRequest } from '../../components/api';
 import { useNavigate } from 'react-router-dom';
 import { isAuthenticated, isDEO } from '../../utilities/auth';
 
@@ -33,7 +33,7 @@ const TransferRequests = () => {
     }, []);
 
     const [requests, setRequests] = useState([]);
-
+    const [profileEditRequests, setProfileEditRequests] = useState([]);
     useEffect(() => {
         const fetchTransferRequests = async () => {
             try {
@@ -44,6 +44,16 @@ const TransferRequests = () => {
             }
         };
 
+        const fetchProfileEditRequests = async () => {
+            try {
+                const requestData = await getProfileEditRequests();
+                setProfileEditRequests(requestData);
+            } catch (error) {
+                console.error('Error fetching profile edit requests:', error);
+            }
+        };
+
+        fetchProfileEditRequests();
         fetchTransferRequests();
     }, []);
 
@@ -53,6 +63,24 @@ const TransferRequests = () => {
             setRequests(requests.filter(request => request._id !== requestId));
         } catch (error) {
             console.error('Error accepting transfer request:', error);
+        }
+    };
+
+    const handleProfileEditAccept = async (teacherId) => {
+        try {
+            await approveProfileEditRequest(teacherId);
+            setProfileEditRequests(profileEditRequests.filter(request => request._id !== teacherId));
+        } catch (error) {
+            console.error('Error accepting profile edit request:', error);
+        }
+    };
+
+    const handleProfileEditReject = async (teacherId) => {
+        try {
+            await rejectProfileEditRequest(teacherId);
+            setProfileEditRequests(profileEditRequests.filter(request => request._id !== teacherId));
+        } catch (error) {
+            console.error('Error rejecting profile edit request:', error);
         }
     };
 
@@ -102,41 +130,84 @@ const TransferRequests = () => {
                     <div>
                         {themeSettings && <ThemeSettings />}
                         <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-white rounded-3xl">
-                            <Header category="Page" title="Transfer Requests"/>
+                            <Header category="Page" title="Transfer Requests" />
                             <div className="overflow-x-auto">
-                                <table className="min-w-full bg-white dark:bg-secondary-dark-bg">
-                                    <thead>
-                                        <tr>
-                                            <th className="py-2">Teacher Name</th>
-                                            <th className="py-2">Current School</th>
-                                            <th className="py-2">Requested School</th>
-                                            <th className="py-2">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {requests.map((request) => (
-                                            <tr key={request._id}>
-                                                <td className="py-2">{request.name}</td>
-                                                <td className="py-2">{request.currentSchool}</td>
-                                                <td className="py-2">{request.newSchoolRequest}</td>
-                                                <td className="py-2">
-                                                    <button
-                                                        className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-                                                        onClick={() => handleAccept(request._id)}
-                                                    >
-                                                        Accept
-                                                    </button>
-                                                    <button
-                                                        className="bg-red-500 text-white px-4 py-2 rounded"
-                                                        onClick={() => handleReject(request._id)}
-                                                    >
-                                                        Reject
-                                                    </button>
-                                                </td>
+                                {requests.length > 0 && (
+                                    <table className="min-w-full bg-white dark:bg-secondary-dark-bg">
+                                        <thead>
+                                            <tr>
+                                                <th className="py-2">Teacher Name</th>
+                                                <th className="py-2">Current School</th>
+                                                <th className="py-2">Requested School</th>
+                                                <th className="py-2">Actions</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {requests.map((request) => (
+                                                <tr key={request._id}>
+                                                    <td className="py-2">{request.name}</td>
+                                                    <td className="py-2">{request.currentSchool}</td>
+                                                    <td className="py-2">{request.newSchoolRequest}</td>
+                                                    <td className="py-2">
+                                                        <button
+                                                            className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+                                                            onClick={() => handleAccept(request._id)}
+                                                        >
+                                                            Accept
+                                                        </button>
+                                                        <button
+                                                            className="bg-red-500 text-white px-4 py-2 rounded"
+                                                            onClick={() => handleReject(request._id)}
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                                {profileEditRequests.length > 0 && (
+                                    <table className="min-w-full bg-white dark:bg-secondary-dark-bg">
+                                        <thead>
+                                            <tr>
+                                                <th className="py-2">Name</th>
+                                                <th className='py-2'>Service Type</th>
+                                                <th className="py-2">School</th>
+                                                <th className="py-2">Experince</th>
+                                                <th className="py-2">Appoinment</th>
+                                                <th className="py-2">Number</th>
+                                                <th className="py-2">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {profileEditRequests.map((request) => (
+                                                <tr key={request._id}>
+                                                    <td className="py-2">{request.name}</td>
+                                                    <td className="py-2">{request.serviceType}</td>
+                                                    <td className="py-2">{request.currentSchool}</td>
+                                                    <td className="py-2">{request.experience}</td>
+                                                    <td className="py-2">{request.initialAppointment}</td>
+                                                    <td className="py-2">{request.contactNumber}</td>
+                                                    <td className="py-2">
+                                                        <button
+                                                            className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+                                                            onClick={() => handleProfileEditAccept(request._id)}
+                                                        >
+                                                            Accept
+                                                        </button>
+                                                        <button
+                                                            className="bg-red-500 text-white px-4 py-2 rounded"
+                                                            onClick={() => handleProfileEditReject(request._id)}
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
                         </div>
                     </div>

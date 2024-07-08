@@ -4,12 +4,14 @@ import { useStateContext } from '../../contexts/ContextProvider';
 import { FiSettings } from "react-icons/fi";
 import { TooltipComponent } from "@syncfusion/ej2-react-popups";
 import { Navbar, Footer, Sidebar, ThemeSettings } from "../components";
-import { requestSchoolChange } from '../../components/api';
+import { getAllVacancies, getRequestByEmail, requestSchoolChange } from '../../components/api';
 import { useNavigate } from 'react-router-dom';
 import { isAuthenticated, isTeacher } from '../../utilities/auth';
 
 const RequestTransfer = () => {
     const [teacher, setTeacher] = useState({});
+    const [vacancy, setVacancy] = useState([]);
+    const [requestAdded, setRequestAdded] = useState(false);
     const navigate = useNavigate();
     const {
         setCurrentColor,
@@ -27,6 +29,28 @@ const RequestTransfer = () => {
         } else {
             const storageTeacher = JSON.parse(localStorage.getItem('teacher'));
             setTeacher(storageTeacher);
+
+            const fetchVacancy = async () => {
+                try {
+                    const getAllVaca = await getAllVacancies();
+                    setVacancy(getAllVaca);
+                } catch (error) {
+                    console.error('Error fetching teacher profiles:', error);
+                }
+            }
+
+            fetchVacancy();
+            const isRequestAdded = async () => {
+                try {
+                    const mainData = await getRequestByEmail(teacher.email);
+                    if (mainData) {
+                        setRequestAdded(true);
+                    }
+                } catch (error) {
+                    console.error('Error fetching request:', error);
+                }
+            };
+            isRequestAdded();
         }
     }, []);
 
@@ -44,19 +68,25 @@ const RequestTransfer = () => {
         });
     };
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            formData.teacherId = teacher._id;
-            formData.currentSchool = teacher.currentSchool;
-            await requestSchoolChange(formData);
-            alert('Transfer request submitted successfully');
-            setFormData({
-                teacherId: teacher._id,
-                currentSchool: teacher.currentSchool,
-                requestedSchool: '',
-                reason: '',
-            });
+            if (requestAdded) {
+                alert('You have already requested for a transfer or your request is pending.');
+                return;
+            } else {
+                formData.teacherId = teacher._id;
+                formData.currentSchool = teacher.currentSchool;
+                await requestSchoolChange(formData);
+                alert('Transfer request submitted successfully');
+                setFormData({
+                    teacherId: teacher._id,
+                    currentSchool: teacher.currentSchool,
+                    requestedSchool: '',
+                    reason: ''
+                });
+            }
         } catch (error) {
             console.error('Error submitting transfer request:', error);
         }
@@ -134,15 +164,23 @@ const RequestTransfer = () => {
                                             <label htmlFor="requestedSchool" className="block text-sm font-medium text-gray-700">
                                                 Requested School
                                             </label>
-                                            <input
-                                                type="text"
+                                            <select
                                                 name="requestedSchool"
                                                 id="requestedSchool"
                                                 value={formData.requestedSchool}
                                                 onChange={handleChange}
                                                 required
                                                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            />
+                                            >
+                                                <option value="">Select School</option>
+                                                {vacancy.map((vac) => (
+                                                    <option key={vac._id}
+                                                        value={`${vac.schoolName} / ${vac.schoolLocation} / ${vac.grade}|${vac._id}`}
+                                                    >
+                                                        {vac.schoolName} / {vac.schoolLocation} / {vac.grade}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div>
                                             <label htmlFor="reason" className="block text-sm font-medium text-gray-700">

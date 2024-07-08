@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Header } from '../components';
 import { useStateContext } from '../../contexts/ContextProvider';
 import { FiSettings } from "react-icons/fi";
